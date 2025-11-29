@@ -4,6 +4,13 @@ pipeline {
     agent { label "jenkins-slave" }
 
     stages {
+        stage('Checkout') {
+    steps {
+        dir('app') {
+            git url: 'https://github.com/anup-wade/django-notes-app.git', branch: 'main'
+        }
+    }
+}
 
         stage("Hello") {
             steps {
