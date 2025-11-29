@@ -52,7 +52,7 @@ pipeline {
 
         stage("deploy") {
             steps {
-                echo "this is deploy step"
+                echo "this is deploy step, final step by anup wade"
                 sh "docker compose down && docker compose up -d"
             }
         }
