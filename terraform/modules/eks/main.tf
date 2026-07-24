@@ -28,6 +28,7 @@ resource "aws_eks_cluster" "this" {
     "authenticator",
     "controllerManager",
     "scheduler"
+    
   ]
 
   tags = merge(

@@ -1,17 +1,23 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
-IMAGE=$1
+IMAGE="$1"
 
-if [ -z "$IMAGE" ]; then
-  echo "Usage: ./update-image.sh <image>"
-  exit 1
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <image>"
+    exit 1
 fi
 
+echo "Updating deployment image to:"
+echo "$IMAGE"
+
 kubectl set image deployment/django-notes \
-django-notes=$IMAGE \
+django-notes="$IMAGE" \
 -n django-notes
 
 kubectl rollout status deployment/django-notes \
--n django-notes
+-n django-notes \
+--timeout=5m
+
+echo "Deployment updated successfully."

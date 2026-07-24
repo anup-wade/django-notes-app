@@ -96,19 +96,19 @@ pipeline {
             steps {
                 sh '''
                 chmod +x scripts/update-image.sh
-                ./scripts/update-image.sh backend ${BACKEND_IMAGE}
+                ./scripts/update-image.sh ${BACKEND_IMAGE}
                 '''
             }
         }
 
-        stage('Update Frontend Image') {
+        /*stage('Update Frontend Image') {
             steps {
                 sh '''
                 chmod +x scripts/update-image.sh
                 ./scripts/update-image.sh frontend ${FRONTEND_IMAGE}
                 '''
             }
-        }
+        }*/
 
         stage('Verify Deployment') {
             steps {
