@@ -1,10 +1,10 @@
-
 pipeline {
     agent any
 
     environment {
         AWS_REGION = 'ap-south-1'
         AWS_ACCOUNT_ID = '071785597559'
+        AWS_PAGER = ''
 
         BACKEND_REPOSITORY = 'notesapp-dev-backend'
         FRONTEND_REPOSITORY = 'notesapp-dev-frontend'
@@ -30,7 +30,7 @@ pipeline {
                 sh '''
                 docker build \
                     -t ${BACKEND_REPOSITORY}:${IMAGE_TAG} \
-                    -f Dockerfile .
+                    -f mynotes/Dockerfile mynotes
                 '''
             }
         }
