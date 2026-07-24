@@ -41,6 +41,7 @@ pipeline {
                 docker build \
                     -t ${FRONTEND_REPOSITORY}:${IMAGE_TAG} \
                     -f mynotes/Dockerfile mynotes
+                '''
             }
         }
 
