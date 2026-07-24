@@ -30,7 +30,7 @@ pipeline {
                 sh '''
                 docker build \
                     -t ${BACKEND_REPOSITORY}:${IMAGE_TAG} \
-                    -f mynotes/Dockerfile mynotes
+                    -f Dockerfile .
                 '''
             }
         }
@@ -40,8 +40,7 @@ pipeline {
                 sh '''
                 docker build \
                     -t ${FRONTEND_REPOSITORY}:${IMAGE_TAG} \
-                    -f frontend/Dockerfile frontend
-                '''
+                    -f mynotes/Dockerfile mynotes
             }
         }
 
