@@ -19,16 +19,32 @@ pipeline {
 
     stages {
 
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
+
         stage('Checkout') {
             steps {
                 checkout scm
+
+                sh '''
+                echo "==============================="
+                echo "Git Information"
+                echo "==============================="
+
+                git branch
+                git status
+                git log --oneline -5
+                '''
             }
         }
 
         stage('Build Backend Image') {
             steps {
                 sh '''
-                docker build \
+                docker build --pull --no-cache \
                     -t ${BACKEND_REPOSITORY}:${IMAGE_TAG} \
                     -f Dockerfile .
                 '''
@@ -38,7 +54,7 @@ pipeline {
         stage('Build Frontend Image') {
             steps {
                 sh '''
-                docker build \
+                docker build --pull --no-cache \
                     -t ${FRONTEND_REPOSITORY}:${IMAGE_TAG} \
                     -f mynotes/Dockerfile mynotes
                 '''
@@ -49,9 +65,9 @@ pipeline {
             steps {
                 sh '''
                 aws ecr get-login-password --region ${AWS_REGION} | docker login \
-                --username AWS \
-                --password-stdin \
-                ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                    --username AWS \
+                    --password-stdin \
+                    ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
                 '''
             }
         }
@@ -101,20 +117,21 @@ pipeline {
             }
         }
 
-        /*stage('Update Frontend Image') {
-            steps {
-                sh '''
-                chmod +x scripts/update-image.sh
-                ./scripts/update-image.sh frontend ${FRONTEND_IMAGE}
-                '''
-            }
-        }*/
-
         stage('Verify Deployment') {
             steps {
                 sh '''
                 chmod +x scripts/verify.sh
                 ./scripts/verify.sh
+
+                echo ""
+                echo "======================================="
+                echo "Current Kubernetes Image"
+                echo "======================================="
+
+                kubectl get deployment django-notes \
+                -o=jsonpath='{.spec.template.spec.containers[0].image}'
+
+                echo ""
                 '''
             }
         }
@@ -123,11 +140,11 @@ pipeline {
     post {
 
         success {
-            echo 'Application deployed successfully.'
+            echo "Application deployed successfully."
         }
 
         failure {
-            echo 'Deployment failed. Rolling back...'
+            echo "Deployment failed. Starting rollback..."
 
             sh '''
             chmod +x scripts/rollback.sh
@@ -136,7 +153,10 @@ pipeline {
         }
 
         always {
-            sh 'docker image prune -f || true'
+            sh '''
+            docker image prune -af || true
+            docker builder prune -af || true
+            '''
         }
     }
 }
