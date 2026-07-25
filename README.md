@@ -55,7 +55,7 @@
 
 Project Overview
 
-Explain:
+Explainations:
 
 Why this project exists
 What it does
