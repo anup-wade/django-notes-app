@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notesapp-frontend
+  namespace: django-notes
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notesapp-frontend
+
+  template:
+    metadata:
+      labels:
+        app: notesapp-frontend
+
+    spec:
+      containers:
+      - name: notesapp-frontend
+        image: 071785597559.dkr.ecr.ap-south-1.amazonaws.com/notesapp-dev-frontend:latest
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 3000
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 15
