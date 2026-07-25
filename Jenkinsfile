@@ -11,10 +11,16 @@ pipeline {
 
         IMAGE_TAG = "${BUILD_NUMBER}"
 
-        BACKEND_IMAGE = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${BACKEND_REPOSITORY}:${IMAGE_TAG}"
-        FRONTEND_IMAGE = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${FRONTEND_REPOSITORY}:${IMAGE_TAG}"
+        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+        BACKEND_IMAGE = "${ECR_REGISTRY}/${BACKEND_REPOSITORY}:${IMAGE_TAG}"
+        FRONTEND_IMAGE = "${ECR_REGISTRY}/${FRONTEND_REPOSITORY}:${IMAGE_TAG}"
+
+        BACKEND_LATEST = "${ECR_REGISTRY}/${BACKEND_REPOSITORY}:latest"
+        FRONTEND_LATEST = "${ECR_REGISTRY}/${FRONTEND_REPOSITORY}:latest"
 
         EKS_CLUSTER_NAME = 'notesapp-dev-eks-cluster'
+        NAMESPACE = 'django-notes'
     }
 
     stages {
@@ -25,19 +31,9 @@ pipeline {
             }
         }
 
-        stage('Checkout') {
+        stage('Checkout Source') {
             steps {
                 checkout scm
-
-                sh '''
-                echo "==============================="
-                echo "Git Information"
-                echo "==============================="
-
-                git branch
-                git status
-                git log --oneline -5
-                '''
             }
         }
 
@@ -65,9 +61,9 @@ pipeline {
             steps {
                 sh '''
                 aws ecr get-login-password --region ${AWS_REGION} | docker login \
-                    --username AWS \
-                    --password-stdin \
-                    ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                --username AWS \
+                --password-stdin \
+                ${ECR_REGISTRY}
                 '''
             }
         }
@@ -76,7 +72,10 @@ pipeline {
             steps {
                 sh '''
                 docker tag ${BACKEND_REPOSITORY}:${IMAGE_TAG} ${BACKEND_IMAGE}
+                docker tag ${BACKEND_REPOSITORY}:${IMAGE_TAG} ${BACKEND_LATEST}
+
                 docker push ${BACKEND_IMAGE}
+                docker push ${BACKEND_LATEST}
                 '''
             }
         }
@@ -85,16 +84,20 @@ pipeline {
             steps {
                 sh '''
                 docker tag ${FRONTEND_REPOSITORY}:${IMAGE_TAG} ${FRONTEND_IMAGE}
+                docker tag ${FRONTEND_REPOSITORY}:${IMAGE_TAG} ${FRONTEND_LATEST}
+
                 docker push ${FRONTEND_IMAGE}
+                docker push ${FRONTEND_LATEST}
                 '''
             }
         }
 
-        stage('Configure EKS') {
+        stage('Configure kubectl') {
             steps {
                 sh '''
-                chmod +x scripts/configure-eks.sh
-                ./scripts/configure-eks.sh
+                aws eks update-kubeconfig \
+                  --region ${AWS_REGION} \
+                  --name ${EKS_CLUSTER_NAME}
                 '''
             }
         }
@@ -102,8 +105,7 @@ pipeline {
         stage('Deploy Kubernetes Resources') {
             steps {
                 sh '''
-                chmod +x scripts/deploy.sh
-                ./scripts/deploy.sh
+                kubectl apply -f k8s/dev/
                 '''
             }
         }
@@ -111,8 +113,23 @@ pipeline {
         stage('Update Backend Image') {
             steps {
                 sh '''
-                chmod +x scripts/update-image.sh
-                ./scripts/update-image.sh ${BACKEND_IMAGE}
+                kubectl set image deployment/django-notes \
+                  django-notes=${BACKEND_IMAGE} \
+                  -n ${NAMESPACE}
+
+                kubectl rollout status deployment/django-notes \
+                  -n ${NAMESPACE} \
+                  --timeout=300s
+                '''
+            }
+        }
+
+        stage('Update Frontend Image') {
+            steps {
+                sh '''
+                kubectl set image deployment/frontend \
+                  frontend=${FRONTEND_IMAGE} \
+                  -n ${NAMESPACE} || true
                 '''
             }
         }
@@ -120,18 +137,21 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
-                chmod +x scripts/verify.sh
-                ./scripts/verify.sh
+                echo "================ Pods ================"
+                kubectl get pods -n ${NAMESPACE}
 
-                echo ""
-                echo "======================================="
-                echo "Current Kubernetes Image"
-                echo "======================================="
+                echo "================ Services ================"
+                kubectl get svc -n ${NAMESPACE}
 
+                echo "================ Deployments ================"
+                kubectl get deployment -n ${NAMESPACE}
+
+                echo "================ Current Backend Image ================"
                 kubectl get deployment django-notes \
+                -n ${NAMESPACE} \
                 -o=jsonpath='{.spec.template.spec.containers[0].image}'
 
-                echo ""
+                echo
                 '''
             }
         }
@@ -140,15 +160,15 @@ pipeline {
     post {
 
         success {
-            echo "Application deployed successfully."
+            echo 'Deployment completed successfully.'
         }
 
         failure {
-            echo "Deployment failed. Starting rollback..."
+            echo 'Deployment failed.'
 
             sh '''
-            chmod +x scripts/rollback.sh
-            ./scripts/rollback.sh
+            kubectl get pods -n ${NAMESPACE} || true
+            kubectl describe deployment django-notes -n ${NAMESPACE} || true
             '''
         }
 
