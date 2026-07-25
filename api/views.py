@@ -3,8 +3,13 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import NoteSerializer
 from .models import Note
+from django.http import JsonResponse
 
 # Create your views here.
+
+
+def health(request):
+    return JsonResponse({"status": "ok"})
 
 @api_view(['GET'])
 def getRoutes(request):

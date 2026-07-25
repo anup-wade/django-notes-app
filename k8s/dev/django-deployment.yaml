@@ -15,15 +15,18 @@ spec:
     spec:
       containers:
       - name: django-notes
-        image: notesapp-dev-backend
+        image: 071785597559.dkr.ecr.ap-south-1.amazonaws.com/notesapp-dev-backend:<IMAGE_TAG>
         imagePullPolicy: Always
+
         ports:
         - containerPort: 8000
+
         envFrom:
         - configMapRef:
             name: django-notes-config
         - secretRef:
             name: django-notes-secret
+
         resources:
           requests:
             cpu: "250m"
@@ -31,15 +34,21 @@ spec:
           limits:
             cpu: "500m"
             memory: "512Mi"
+
         readinessProbe:
           httpGet:
-            path: /
+            path: /health/
             port: 8000
           initialDelaySeconds: 10
           periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
         livenessProbe:
           httpGet:
-            path: /
+            path: /health/
             port: 8000
           initialDelaySeconds: 30
           periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3

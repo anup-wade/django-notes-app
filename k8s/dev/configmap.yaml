@@ -10,5 +10,5 @@ data:
 
   DB_HOST: "mysql-service"
   DB_PORT: "3306"
-  DB_NAME: "notesdb"
+  DB_NAME: "notesapp"
   DB_USER: "notesuser"
