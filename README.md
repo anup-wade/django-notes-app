@@ -1,148 +1,278 @@
-A complete DevOps project from scratch:
+# Django Notes App - End-to-End DevOps on AWS EKS
+
+## Project Overview
+
+## Architecture Diagram
+
+## Technology Stack
+
+## Features
+
+## Prerequisites
+
+## Repository Structure
+
+## Phase 1 - Clone Repository
+
+## Phase 2 - AWS Infrastructure with Terraform
+
+## Phase 3 - Configure AWS CLI
+
+## Phase 4 - Deploy Infrastructure
+
+## Phase 5 - Create EKS Cluster
+
+## Phase 6 - Configure kubectl
+
+## Phase 7 - Install Jenkins
+
+## Phase 8 - Configure Jenkins
+
+## Phase 9 - Configure IAM Role
+
+## Phase 10 - Create ECR Repositories
+
+## Phase 11 - Docker Images
+
+## Phase 12 - Kubernetes Deployment
+
+## Phase 13 - Jenkins Pipeline
+
+## Phase 14 - Verify Deployment
+
+## Phase 15 - Troubleshooting
+
+## Destroy Infrastructure
+
+## Screenshots
+
+## Future Improvements
+
+## Author
+
+
+
+
+Project Overview
+
+Explain:
+
+Why this project exists
+What it does
+Architecture
+CI/CD Flow
+Architecture
+
+Include diagrams.
+
+Developer
+
+↓
 
 GitHub
-   │
-   ▼
-Jenkins (EC2)
-   │
-   ├── Build Backend Docker Image
-   ├── Build Frontend Docker Image
-   ├── Push Images to Amazon ECR
-   └── Deploy to Amazon EKS
-                    │
-                    ▼
-              Django Notes App
-                    │
-         ┌──────────┴──────────┐
-         ▼                     ▼
-     Django API          React Frontend
-                    │
-                    ▼
-          AWS Load Balancer (ALB)
-Project Phases
-Phase 1 – AWS Infrastructure (Terraform)
 
-We'll create everything using Terraform.
-
-terraform/
-│
-├── modules/
-│   ├── vpc/
-│   ├── iam/
-│   ├── ecr/
-│   ├── eks/
-│   ├── alb/
-│   └── security-groups/
-│
-├── dev/
-│   ├── backend.tf
-│   ├── main.tf
-│   ├── variables.tf
-│   ├── terraform.tfvars
-│   └── outputs.tf
-│
-└── versions.tf
-
-Terraform will create:
-
-VPC
-Public & Private Subnets
-Internet Gateway
-NAT Gateway
-Route Tables
-Security Groups
-IAM Roles
-Amazon ECR (Backend)
-Amazon ECR (Frontend)
-Amazon EKS Cluster
-Managed Node Group
-OIDC Provider
-AWS Load Balancer Controller IAM Policy
-Phase 2 – Jenkins Server
-
-Terraform can also create a Jenkins EC2 instance.
-
-We'll install:
+↓
 
 Jenkins
+
+↓
+
 Docker
-AWS CLI
-kubectl
-eksctl
-Git
-Java
-Docker Buildx
-Phase 3 – Django Notes Application
 
-Project structure:
+↓
 
+Amazon ECR
+
+↓
+
+Amazon EKS
+
+↓
+
+AWS Load Balancer
+
+↓
+
+Users
+
+Later we'll create professional diagrams.
+
+Repository Structure
 django-notes-app/
 
 backend/
 
 frontend/
 
-k8s/
+nginx/
 
 terraform/
 
-Jenkinsfile
+modules/
 
-README.md
-Phase 4 – Docker
+vpc/
 
-Backend
+ecr/
 
-Dockerfile
+eks/
 
-Frontend
+iam/
 
-Dockerfile
+jenkins/
 
-Custom nginx
-
-nginx/default.conf
-Phase 5 – Amazon ECR
-
-Terraform creates:
-
-notesapp-backend
-
-notesapp-frontend
-
-Images pushed automatically from Jenkins.
-
-Phase 6 – Amazon EKS
-
-Terraform creates:
-
-EKS Cluster
-Node Group
-IAM
-Security Groups
-Phase 7 – Kubernetes
 k8s/
 
 namespace.yaml
 
 backend-deployment.yaml
 
-backend-service.yaml
-
 frontend-deployment.yaml
 
-frontend-service.yaml
+service.yaml
 
 ingress.yaml
 
-hpa.yaml
+Jenkinsfile
 
-configmap.yaml
+README.md
+Terraform
 
-secret.yaml
-Phase 8 – Jenkins Pipeline
+Explain every module.
 
-Pipeline stages:
+Example
+
+terraform/
+
+modules/
+
+vpc/
+
+Creates VPC
+
+Subnets
+
+Route Tables
+
+NAT Gateway
+
+Internet Gateway
+
+eks/
+
+Creates
+
+EKS Cluster
+
+Managed Node Groups
+
+IAM
+
+OIDC
+
+ecr/
+
+Creates
+
+Backend Repository
+
+Frontend Repository
+
+iam/
+
+Creates
+
+Node IAM Role
+
+Cluster IAM Role
+
+IRSA
+Jenkins Installation
+
+Everything
+
+Install Java
+
+Install Jenkins
+
+Install Docker
+
+Install AWS CLI
+
+Install kubectl
+
+Install eksctl
+
+Configure IAM Role
+
+Restart Jenkins
+
+Install Plugins
+
+Docker Plugin
+
+Pipeline Plugin
+
+Git Plugin
+
+Blue Ocean
+
+Include every command.
+
+Jenkins Configuration
+Create Pipeline
+
+Configure SCM
+
+GitHub Repository
+
+Webhook
+
+Credentials
+
+Environment Variables
+
+Pipeline Script
+Docker
+
+Explain
+
+Backend Dockerfile
+
+Frontend Dockerfile
+
+Multi-stage build
+
+Nginx Reverse Proxy
+
+ECR
+aws ecr create-repository
+
+docker tag
+
+docker push
+Kubernetes
+
+Explain every manifest.
+
+Namespace
+
+Deployment
+
+Service
+
+Ingress
+
+ConfigMap
+
+Secret
+
+HPA
+
+Explain why each exists.
+
+CI/CD Pipeline
+
+Every stage.
 
 Checkout
 
@@ -150,7 +280,7 @@ Build Backend
 
 Build Frontend
 
-Scan Images (Trivy)
+Trivy Scan
 
 Push Backend
 
@@ -164,85 +294,87 @@ Verify Deployment
 
 Cleanup
 
-The pipeline will:
+Include screenshots.
 
-Clone from GitHub
-Build Docker images
-Push to ECR
-Update Kubernetes deployments
-Wait for rollout
-Verify pods are healthy
-Fail automatically if deployment fails
-Phase 9 – Monitoring
+Validation
+
+Commands
+
+kubectl get pods
+
+kubectl get svc
+
+kubectl get ingress
+
+kubectl describe pod
+
+kubectl logs
+Troubleshooting
+
+Very important.
+
+Example
+
+ImagePullBackOff
+
+CrashLoopBackOff
+
+502 Bad Gateway
+
+Readiness Probe Failed
+
+Liveness Probe Failed
+
+Database Connection Failed
+
+AWS Authentication Failed
+
+Docker Build Failed
+
+Terraform Apply Failed
+
+Jenkins Workspace Issues
+
+Nginx Reverse Proxy Issues
+
+Explain root cause and resolution for each.
+
+Destroy Infrastructure
+terraform destroy
+
+Delete ECR Images
+
+Delete Jenkins
+
+Delete EBS
+
+Delete ALB
+Cost Estimation
+
+Include estimated AWS monthly costs.
+
+Service	Estimated Monthly Cost
+EKS	$70
+EC2 (Jenkins)	$15
+NAT Gateway	$35
+ECR	$2
+ALB	$20
+CloudWatch	$5
+Future Improvements
+ArgoCD
+
+Helm
+
+Terraform Cloud
+
+GitHub Actions
+
 Prometheus
+
 Grafana
-Metrics Server
-Phase 10 – Ingress
 
-We'll use the AWS Load Balancer Controller.
+SonarQube
 
-Result:
+OPA
 
-Internet
-      │
-      ▼
-Application Load Balancer
-      │
- ┌────┴────┐
- ▼         ▼
-Frontend   Backend
-Phase 11 – Security
-IAM Roles for Service Accounts (IRSA)
-Kubernetes Secrets
-Least-privilege IAM policies
-No AWS credentials stored in Jenkinsfile (use the EC2 IAM role)
-Phase 12 – Documentation
-
-We'll prepare:
-
-Architecture Diagram
-Terraform Diagram
-Jenkins Pipeline Diagram
-Kubernetes Diagram
-Deployment Guide
-Troubleshooting Guide
-Interview Questions & Answers
-Final Repository Structure
-django-notes-app/
-│
-├── backend/
-├── frontend/
-├── nginx/
-├── k8s/
-│
-├── terraform/
-│   ├── modules/
-│   └── dev/
-│
-├── Jenkinsfile
-├── README.md
-└── deployment-guide.md
-What We'll Achieve
-
-At the end, you'll have a fully automated deployment where:
-
-Developer
-     │
-git push
-     │
-     ▼
-GitHub
-     │
-Webhook
-     ▼
-Jenkins
-     │
-Build Docker Images
-     │
-Push to Amazon ECR
-     │
-Deploy to Amazon EKS
-     │
-Wait for Rollout
-     │
-Application Available via AWS Load Balancer
+Karpenter
