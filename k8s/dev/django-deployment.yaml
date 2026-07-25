@@ -3,52 +3,59 @@ kind: Deployment
 metadata:
   name: django-notes
   namespace: django-notes
+
 spec:
   replicas: 2
+
   selector:
     matchLabels:
       app: django-notes
+
   template:
     metadata:
       labels:
         app: django-notes
+
     spec:
       containers:
-      - name: django-notes
-        image: 071785597559.dkr.ecr.ap-south-1.amazonaws.com/notesapp-dev-backend:<IMAGE_TAG>
-        imagePullPolicy: Always
+        - name: django-notes
 
-        ports:
-        - containerPort: 8000
+          image: 071785597559.dkr.ecr.ap-south-1.amazonaws.com/notesapp-dev-backend:latest
 
-        envFrom:
-        - configMapRef:
-            name: django-notes-config
-        - secretRef:
-            name: django-notes-secret
+          imagePullPolicy: Always
 
-        resources:
-          requests:
-            cpu: "250m"
-            memory: "256Mi"
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
+          ports:
+            - containerPort: 8000
 
-        readinessProbe:
-          httpGet:
-            path: /health/
-            port: 8000
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
+          envFrom:
+            - configMapRef:
+                name: django-notes-config
+            - secretRef:
+                name: django-notes-secret
 
-        livenessProbe:
-          httpGet:
-            path: /health/
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 15
-          timeoutSeconds: 5
-          failureThreshold: 3
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          readinessProbe:
+            httpGet:
+              path: /api/health/
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /api/health/
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3

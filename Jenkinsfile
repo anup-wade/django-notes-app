@@ -40,9 +40,11 @@ pipeline {
         stage('Build Backend Image') {
             steps {
                 sh '''
-                docker build --pull --no-cache \
-                    -t ${BACKEND_REPOSITORY}:${IMAGE_TAG} \
-                    -f Dockerfile .
+                docker build \
+                  --pull \
+                  --no-cache \
+                  -t ${BACKEND_REPOSITORY}:${IMAGE_TAG} \
+                  -f Dockerfile .
                 '''
             }
         }
@@ -50,9 +52,11 @@ pipeline {
         stage('Build Frontend Image') {
             steps {
                 sh '''
-                docker build --pull --no-cache \
-                    -t ${FRONTEND_REPOSITORY}:${IMAGE_TAG} \
-                    -f mynotes/Dockerfile mynotes
+                docker build \
+                  --pull \
+                  --no-cache \
+                  -t ${FRONTEND_REPOSITORY}:${IMAGE_TAG} \
+                  -f mynotes/Dockerfile mynotes
                 '''
             }
         }
@@ -61,9 +65,9 @@ pipeline {
             steps {
                 sh '''
                 aws ecr get-login-password --region ${AWS_REGION} | docker login \
-                --username AWS \
-                --password-stdin \
-                ${ECR_REGISTRY}
+                  --username AWS \
+                  --password-stdin \
+                  ${ECR_REGISTRY}
                 '''
             }
         }
@@ -105,7 +109,21 @@ pipeline {
         stage('Deploy Kubernetes Resources') {
             steps {
                 sh '''
-                kubectl apply -f k8s/dev/
+                kubectl apply -f k8s/dev/namespace.yaml
+
+                kubectl apply -f k8s/dev/configmap.yaml
+                kubectl apply -f k8s/dev/secret.yaml
+
+                kubectl apply -f k8s/dev/mysql-pvc.yaml
+                kubectl apply -f k8s/dev/mysql-service.yaml
+                kubectl apply -f k8s/dev/mysql-deployment.yaml
+
+                kubectl apply -f k8s/dev/service.yaml
+                kubectl apply -f k8s/dev/django-deployment.yaml
+
+                kubectl apply -f k8s/dev/ingress.yaml
+
+                kubectl apply -f k8s/dev/hpa.yaml || true
                 '''
             }
         }
@@ -137,19 +155,22 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
-                echo "================ Pods ================"
+                echo "================ PODS ================"
                 kubectl get pods -n ${NAMESPACE}
 
-                echo "================ Services ================"
+                echo "================ SERVICES ================"
                 kubectl get svc -n ${NAMESPACE}
 
-                echo "================ Deployments ================"
+                echo "================ DEPLOYMENTS ================"
                 kubectl get deployment -n ${NAMESPACE}
 
-                echo "================ Current Backend Image ================"
+                echo "================ INGRESS ================"
+                kubectl get ingress -n ${NAMESPACE}
+
+                echo "================ CURRENT IMAGE ================"
                 kubectl get deployment django-notes \
-                -n ${NAMESPACE} \
-                -o=jsonpath='{.spec.template.spec.containers[0].image}'
+                  -n ${NAMESPACE} \
+                  -o=jsonpath='{.spec.template.spec.containers[0].image}'
 
                 echo
                 '''
@@ -164,11 +185,18 @@ pipeline {
         }
 
         failure {
+
             echo 'Deployment failed.'
 
             sh '''
-            kubectl get pods -n ${NAMESPACE} || true
-            kubectl describe deployment django-notes -n ${NAMESPACE} || true
+            echo "===== PODS ====="
+            kubectl get pods -n ${NAMESPACE}
+
+            echo "===== DEPLOYMENT ====="
+            kubectl describe deployment django-notes -n ${NAMESPACE}
+
+            echo "===== POD LOGS ====="
+            kubectl logs deployment/django-notes -n ${NAMESPACE} --tail=100 || true
             '''
         }
 
