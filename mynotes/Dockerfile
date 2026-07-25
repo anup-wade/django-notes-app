@@ -13,6 +13,10 @@ RUN npm run build
 # ---------- Runtime Stage ----------
 FROM nginx:alpine
 
+# Copy custom Nginx configuration
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Copy React build
 COPY --from=builder /app/build /usr/share/nginx/html
 
 EXPOSE 80
